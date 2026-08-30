@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Clapperboard, Loader2, Sparkles, RotateCw, Pencil, Save, Repeat2, Send } from "lucide-react";
+import { Clapperboard, Loader2, Sparkles, RotateCw, Pencil, Save, Repeat2, Send, Copy, Check } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { AiFillButton } from "@/components/shared/ai-fill-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ import { toast } from "sonner";
 export default function ScriptsPage() {
   const [script, setScript] = useState<VideoScript | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(VIDEO_CATEGORIES[1]);
 
   const {
@@ -46,6 +48,61 @@ export default function ScriptsPage() {
   });
 
   const values = watch();
+
+  function scriptToMarkdown(s: VideoScript): string {
+    const beats = s.beats
+      .map((b) => `### ${b.beat}\n\n${b.detail}\n\n**B-roll:** ${b.bRoll}`)
+      .join("\n\n");
+    return `# ${s.topic}
+
+**Category:** ${s.category}  
+**Length:** ${s.length}  
+**Speaker:** ${s.speaker}  
+**Tone:** ${s.tone}
+
+---
+
+## Hook (0–3s)
+
+> ${s.hook}
+
+## Main Script (3–22s)
+
+${beats}
+
+## On-screen Text
+
+${s.onScreenText}
+
+## CTA (22–30s)
+
+${s.cta}
+
+## Suggested Visuals
+
+${s.visuals}
+
+## Suggested Caption
+
+${s.caption}
+
+## Platform Recommendations
+
+${s.platformRecs}
+`;
+  }
+
+  async function copyScript() {
+    if (!script) return;
+    try {
+      await navigator.clipboard.writeText(scriptToMarkdown(script));
+      setCopied(true);
+      toast.success("Script copied as Markdown");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  }
 
   async function onSubmit(data: ScriptBriefValues) {
     setLoading(true);
@@ -104,7 +161,17 @@ export default function ScriptsPage() {
         {/* Brief */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Script brief</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Script brief</CardTitle>
+              <AiFillButton
+                formType="scripts"
+                onFill={(fields) => {
+                  (Object.keys(fields) as (keyof ScriptBriefValues)[]).forEach((key) => {
+                    setValue(key, fields[key as string] as never, { shouldValidate: true });
+                  });
+                }}
+              />
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -163,7 +230,7 @@ export default function ScriptsPage() {
         </Card>
 
         {/* Preview */}
-        <ScriptPreview script={script} loading={loading} onRegenerate={handleSubmit(onSubmit)} />
+        <ScriptPreview script={script} loading={loading} onRegenerate={handleSubmit(onSubmit)} onCopy={copyScript} copied={copied} />
       </div>
     </div>
   );
@@ -173,10 +240,14 @@ function ScriptPreview({
   script,
   loading,
   onRegenerate,
+  onCopy,
+  copied,
 }: {
   script: VideoScript | null;
   loading: boolean;
   onRegenerate: () => void;
+  onCopy: () => void;
+  copied: boolean;
 }) {
   if (loading) {
     return (
@@ -247,6 +318,10 @@ function ScriptPreview({
           <p className="text-sm text-muted-foreground">{script.platformRecs}</p>
         </div>
         <div className="flex flex-wrap gap-2 border-t pt-4">
+          <Button variant="outline" size="sm" onClick={onCopy}>
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? "Copied!" : "Copy MD"}
+          </Button>
           <Button variant="outline" size="sm" onClick={onRegenerate}><RotateCw className="h-4 w-4" /> Regenerate</Button>
           <Button variant="outline" size="sm" onClick={() => toast.info("Edit mode")}><Pencil className="h-4 w-4" /> Edit</Button>
           <Button variant="outline" size="sm" onClick={() => toast.success("Draft saved")}><Save className="h-4 w-4" /> Save draft</Button>

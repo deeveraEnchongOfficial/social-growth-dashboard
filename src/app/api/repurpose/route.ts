@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const provider = getAiProvider();
+    const provider = await getAiProvider();
     const variants = await provider.repurposeContent(body);
     return NextResponse.json({ variants });
   } catch (error) {

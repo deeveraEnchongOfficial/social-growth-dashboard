@@ -192,6 +192,7 @@ export interface GeneratedImage {
   aspectRatio: string;
   status: ApprovalStatus;
   gradient: string;
+  imageUrl?: string;
 }
 
 export interface RepurposeVariant {

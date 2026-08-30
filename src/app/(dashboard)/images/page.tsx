@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePlus, Loader2, Sparkles, Download, RotateCw, Save, Send, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { AiFillButton } from "@/components/shared/ai-fill-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -81,7 +82,17 @@ export default function ImagesPage() {
         {/* Brief */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base">Image brief</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Image brief</CardTitle>
+              <AiFillButton
+                formType="images"
+                onFill={(fields) => {
+                  (Object.keys(fields) as (keyof ImageBriefValues)[]).forEach((key) => {
+                    setValue(key, fields[key as string] as never, { shouldValidate: true });
+                  });
+                }}
+              />
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -183,9 +194,36 @@ export default function ImagesPage() {
 }
 
 function ImageCard({ image }: { image: GeneratedImage }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Card className="overflow-hidden">
       <div className={cn("relative aspect-square bg-gradient-to-br", image.gradient)}>
+        {image.imageUrl && !imgError && (
+          <>
+            {!imgLoaded && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/50">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground">Generating image…</p>
+              </div>
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={image.imageUrl}
+              alt={image.title}
+              className="absolute inset-0 h-full w-full object-cover"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+            />
+          </>
+        )}
+        {image.imageUrl && imgError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <ImagePlus className="h-6 w-6" />
+            <p className="text-xs">Image unavailable</p>
+          </div>
+        )}
         <div className="absolute left-3 top-3 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold backdrop-blur">
           Brand fit {image.brandFitScore}%
         </div>

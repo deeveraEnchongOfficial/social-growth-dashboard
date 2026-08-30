@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const provider = getAiProvider();
+    const provider = await getAiProvider();
     const message = await provider.generateOutreach(body);
     return NextResponse.json({ message });
   } catch (error) {

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const provider = getAiProvider();
+    const provider = await getAiProvider();
     const images = await provider.generateImages(body, body.count ?? 4);
     return NextResponse.json({ images });
   } catch (error) {

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Sparkles, Pencil, Check, Send, Repeat2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { AiFillButton } from "@/components/shared/ai-fill-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -83,7 +84,17 @@ export default function RepurposePage() {
         {/* Source idea */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base">Source idea</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Source idea</CardTitle>
+              <AiFillButton
+                formType="repurpose"
+                onFill={(fields) => {
+                  (Object.keys(fields) as (keyof RepurposeBriefValues)[]).forEach((key) => {
+                    setValue(key, fields[key as string] as never, { shouldValidate: true });
+                  });
+                }}
+              />
+            </div>
             <p className="text-xs text-muted-foreground">What we&apos;re remixing.</p>
           </CardHeader>
           <CardContent>

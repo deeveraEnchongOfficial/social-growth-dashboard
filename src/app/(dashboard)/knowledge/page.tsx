@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, MoreHorizontal, Archive, Trash2, Pencil, Brain } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { AiFillButton } from "@/components/shared/ai-fill-button";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,10 +176,20 @@ export default function KnowledgePage() {
         {/* Add form */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Brain className="h-4 w-4 text-primary" />
-              Add new knowledge
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Brain className="h-4 w-4 text-primary" />
+                Add new knowledge
+              </CardTitle>
+              <AiFillButton
+                formType="knowledge"
+                onFill={(fields) => {
+                  (Object.keys(fields) as (keyof KnowledgeEntryValues)[]).forEach((key) => {
+                    setValue(key, fields[key as string] as never, { shouldValidate: true });
+                  });
+                }}
+              />
+            </div>
             <p className="text-xs text-muted-foreground">Teach the AI something about GrowthCo.</p>
           </CardHeader>
           <CardContent>

@@ -75,12 +75,21 @@ export class MockAiProvider implements AiProvider {
 
   async generateImages(brief: ImageBrief, count = 4): Promise<GeneratedImage[]> {
     await delay(1200);
-    return Array.from({ length: count }, (_, i) => ({
-      ...sampleImages[i % sampleImages.length],
-      id: id("im"),
-      aspectRatio: brief.aspectRatio || sampleImages[0].aspectRatio,
-      status: "Drafted" as const,
-    }));
+    return Array.from({ length: count }, (_, i) => {
+      const sample = sampleImages[i % sampleImages.length];
+      const seed = Math.floor(Math.random() * 1000000);
+      const prompt = encodeURIComponent(`${brief.brandStyle || "editorial"} ${brief.topic || "product visual"} ${brief.imageType || ""}`);
+      const width = brief.aspectRatio?.includes("16:9") ? 1024 : brief.aspectRatio?.includes("9:16") ? 576 : 1024;
+      const height = brief.aspectRatio?.includes("16:9") ? 576 : brief.aspectRatio?.includes("9:16") ? 1024 : 1024;
+      const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=${width}&height=${height}&seed=${seed + i}&nologo=true`;
+      return {
+        ...sample,
+        id: id("im"),
+        aspectRatio: brief.aspectRatio || sampleImages[0].aspectRatio,
+        status: "Drafted" as const,
+        imageUrl,
+      };
+    });
   }
 
   async repurposeContent(brief: RepurposeBrief): Promise<RepurposeVariant[]> {

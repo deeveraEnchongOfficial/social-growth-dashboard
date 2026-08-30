@@ -230,6 +230,46 @@ const integrationSchema = new Schema(
   { timestamps: true }
 );
 
+/* -------------------------- Settings ---------------------------- */
+const settingsSchema = new Schema(
+  {
+    workspaceId: { type: Schema.Types.ObjectId, ref: "Workspace", index: true, unique: true },
+    brandVoice: {
+      tone: { type: String, default: "Educational, calm" },
+      personality: { type: String, default: "Founder-led authority" },
+      readingLevel: { type: String, default: "Grade 7–9 (accessible)" },
+      ctaStyle: { type: String, default: "Save / share / consult" },
+      wordsToUse: { type: String, default: "customer-focused, data-driven, approachable, strategy, playbook, insight, growth" },
+      wordsToAvoid: { type: String, default: "hype, exaggeration, miracle, guaranteed, permanent" },
+      approvedClaims: { type: String, default: "Built for growing teams · Designed for modern marketers · Trusted by data-driven brands" },
+      claimsToAvoid: { type: String, default: "No unsubstantiated claims. No before/after promises. No “proven” without source." },
+    },
+    guardrails: { type: Schema.Types.Mixed, default: {} },
+    notifications: { type: Schema.Types.Mixed, default: {} },
+    aiProviders: {
+      activeProvider: { type: String, default: "mock" },
+      openai: { apiKey: { type: String, default: "" }, model: { type: String, default: "gpt-4o" } },
+      anthropic: { apiKey: { type: String, default: "" }, model: { type: String, default: "claude-sonnet-4-20250514" } },
+      gemini: { apiKey: { type: String, default: "" }, model: { type: String, default: "gemini-2.0-flash" } },
+      openrouter: { apiKey: { type: String, default: "" }, model: { type: String, default: "anthropic/claude-3.5-sonnet" } },
+      imageProvider: { type: String, default: "mock" },
+      imageApiKey: { type: String, default: "" },
+    },
+    integrations: {
+      tikhub: { apiKey: { type: String, default: "" }, status: { type: String, default: "Disconnected" } },
+      apify: { apiKey: { type: String, default: "" }, status: { type: String, default: "Disconnected" } },
+      gmail: { apiKey: { type: String, default: "" }, status: { type: String, default: "Disconnected" } },
+      tiktok: { apiKey: { type: String, default: "" }, status: { type: String, default: "Disconnected" } },
+      instagram: { apiKey: { type: String, default: "" }, status: { type: String, default: "Disconnected" } },
+    },
+    workspace: {
+      name: { type: String, default: "GrowthCo" },
+      productName: { type: String, default: "AI Growth Suite" },
+    },
+  },
+  { timestamps: true }
+);
+
 // Guard against OverwriteModelError when the module is bundled multiple
 // times by Next.js webpack — only register a model if it doesn't exist yet.
 function getModel(name: string, schema: mongoose.Schema) {
@@ -249,6 +289,7 @@ export const CreatorModel = getModel("Creator", creatorSchema) as mongoose.Model
 export const OutreachMessageModel = getModel("OutreachMessage", outreachMessageSchema) as mongoose.Model<OutreachMessageDoc>;
 export const ApprovalItemModel = getModel("ApprovalItem", approvalItemSchema) as mongoose.Model<ApprovalItemDoc>;
 export const IntegrationModel = getModel("Integration", integrationSchema) as mongoose.Model<IntegrationDoc>;
+export const SettingsModel = getModel("Settings", settingsSchema) as mongoose.Model<SettingsDoc>;
 
 export type UserDoc = InferSchemaType<typeof userSchema>;
 export type WorkspaceDoc = InferSchemaType<typeof workspaceSchema>;
@@ -263,3 +304,4 @@ export type CreatorDoc = InferSchemaType<typeof creatorSchema>;
 export type OutreachMessageDoc = InferSchemaType<typeof outreachMessageSchema>;
 export type ApprovalItemDoc = InferSchemaType<typeof approvalItemSchema>;
 export type IntegrationDoc = InferSchemaType<typeof integrationSchema>;
+export type SettingsDoc = InferSchemaType<typeof settingsSchema>;

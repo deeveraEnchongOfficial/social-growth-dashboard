@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sparkles, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { AiFillButton } from "@/components/shared/ai-fill-button";
 import { ContentPreview } from "@/components/features/content/content-preview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,7 +88,17 @@ export default function ContentGeneratorPage() {
         {/* Brief form */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Brief</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Brief</CardTitle>
+              <AiFillButton
+                formType="content"
+                onFill={(fields) => {
+                  (Object.keys(fields) as (keyof ContentBriefValues)[]).forEach((key) => {
+                    setValue(key, fields[key as string] as never, { shouldValidate: true });
+                  });
+                }}
+              />
+            </div>
             <p className="text-xs text-muted-foreground">The clearer your brief, the better the output.</p>
           </CardHeader>
           <CardContent>

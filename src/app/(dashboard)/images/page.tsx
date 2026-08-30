@@ -200,8 +200,8 @@ export default function ImagesPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {images.map((img) => (
-                <ImageCard key={img.id} image={img} />
+              {images.map((img, idx) => (
+                <ImageCard key={img.id} image={img} delay={idx * 1500} />
               ))}
             </div>
           )}
@@ -211,32 +211,85 @@ export default function ImagesPage() {
   );
 }
 
-function ImageCard({ image }: { image: GeneratedImage }) {
+function ImageCard({ image, delay = 0 }: { image: GeneratedImage; delay?: number }) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [retryKey, setRetryKey] = useState(0);
+  const [visible, setVisible] = useState(delay === 0);
+  const [currentUrl, setCurrentUrl] = useState(image.imageUrl);
+  const [regenerating, setRegenerating] = useState(false);
+  const MAX_RETRIES = 3;
+
+  // Stagger initial image loading to avoid hitting Pollinations.ai
+  // with all 4 requests at the same time (which causes rate-limiting).
+  useEffect(() => {
+    if (delay > 0) {
+      const timer = setTimeout(() => setVisible(true), delay);
+      return () => clearTimeout(timer);
+    }
+  }, [delay]);
+
+  // Retry loading the image after a delay when it fails.
+  useEffect(() => {
+    if (imgError && retryCount < MAX_RETRIES) {
+      const retryDelay = (retryCount + 1) * 2000;
+      const timer = setTimeout(() => {
+        setImgError(false);
+        setRetryCount((c) => c + 1);
+        setRetryKey((k) => k + 1);
+      }, retryDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [imgError, retryCount]);
+
+  /** Regenerate the image by swapping the seed in the Pollinations URL. */
+  function handleRegenerate() {
+    if (!image.imageUrl) return;
+    const newSeed = Math.floor(Math.random() * 1000000);
+    const url = new URL(image.imageUrl);
+    url.searchParams.set("seed", String(newSeed));
+    setCurrentUrl(url.toString());
+    setImgLoaded(false);
+    setImgError(false);
+    setRetryCount(0);
+    setRetryKey((k) => k + 1);
+    setRegenerating(true);
+  }
 
   return (
     <Card className="overflow-hidden">
       <div className={cn("relative aspect-square bg-gradient-to-br", image.gradient)}>
-        {image.imageUrl && !imgError && (
+        {currentUrl && !imgError && visible && (
           <>
             {!imgLoaded && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/50">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className="text-xs text-muted-foreground">Generating image…</p>
+                <p className="text-xs text-muted-foreground">
+                  {regenerating ? "Regenerating…" : retryCount > 0 ? `Retrying… (${retryCount}/${MAX_RETRIES})` : "Generating image…"}
+                </p>
               </div>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={image.imageUrl}
+              key={retryKey}
+              src={currentUrl}
               alt={image.title}
               className="absolute inset-0 h-full w-full object-cover"
-              onLoad={() => setImgLoaded(true)}
-              onError={() => setImgError(true)}
+              onLoad={() => { setImgLoaded(true); setRegenerating(false); }}
+              onError={() => { setImgError(true); setRegenerating(false); }}
             />
           </>
         )}
-        {image.imageUrl && imgError && (
+        {currentUrl && (!visible || (imgError && retryCount < MAX_RETRIES)) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/50">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-xs text-muted-foreground">
+              {regenerating ? "Regenerating…" : "Generating image…"}
+            </p>
+          </div>
+        )}
+        {currentUrl && imgError && retryCount >= MAX_RETRIES && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
             <ImagePlus className="h-6 w-6" />
             <p className="text-xs">Image unavailable</p>
@@ -258,8 +311,8 @@ function ImageCard({ image }: { image: GeneratedImage }) {
           <Button variant="outline" size="sm" onClick={() => toast.success("Download started")}>
             <Download className="h-3.5 w-3.5" /> Download
           </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.info("Regenerating…")}>
-            <RotateCw className="h-3.5 w-3.5" /> Regenerate
+          <Button variant="outline" size="sm" disabled={regenerating} onClick={handleRegenerate}>
+            {regenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />} Regenerate
           </Button>
           <Button variant="outline" size="sm" onClick={() => toast.success("Saved")}>
             <Save className="h-3.5 w-3.5" /> Save

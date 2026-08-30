@@ -26,12 +26,19 @@ import {
   TONES,
   CONTENT_TYPES,
 } from "@/lib/constants";
+import { useDropdownValues } from "@/lib/hooks/use-dropdown-values";
 import type { ContentDraft } from "@/lib/types";
 import { toast } from "sonner";
 
 export default function ContentGeneratorPage() {
   const [draft, setDraft] = useState<ContentDraft | null>(null);
   const [loading, setLoading] = useState(false);
+  const { values: dv } = useDropdownValues();
+
+  const contentGoals = dv?.content.contentGoals ?? CONTENT_GOALS;
+  const platforms = dv?.content.platforms ?? PLATFORMS;
+  const tones = dv?.content.tones ?? TONES;
+  const contentTypes = dv?.content.contentTypes ?? CONTENT_TYPES;
 
   const {
     register,
@@ -107,7 +114,7 @@ export default function ContentGeneratorPage() {
                 <Select value={values.goal} onValueChange={(v) => setValue("goal", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select a goal" /></SelectTrigger>
                   <SelectContent>
-                    {CONTENT_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    {contentGoals.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
@@ -117,7 +124,7 @@ export default function ContentGeneratorPage() {
                   <Select value={values.platform} onValueChange={(v) => setValue("platform", v, { shouldValidate: true })}>
                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
-                      {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      {platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -125,7 +132,7 @@ export default function ContentGeneratorPage() {
                   <Select value={values.tone} onValueChange={(v) => setValue("tone", v, { shouldValidate: true })}>
                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
-                      {TONES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {tones.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -148,7 +155,7 @@ export default function ContentGeneratorPage() {
                 <Select value={values.contentType} onValueChange={(v) => setValue("contentType", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select a content type" /></SelectTrigger>
                   <SelectContent>
-                    {CONTENT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {contentTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>

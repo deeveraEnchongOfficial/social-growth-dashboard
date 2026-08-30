@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Sparkles, Pencil, Check, Send, Repeat2 } from "lucide-react";
@@ -21,10 +22,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { repurposeBriefSchema, type RepurposeBriefValues } from "@/lib/schemas";
 import { TONES } from "@/lib/constants";
+import { useDropdownValues } from "@/lib/hooks/use-dropdown-values";
+import { sendToApproval } from "@/lib/approval-helpers";
 import type { RepurposeVariant } from "@/lib/types";
 import { toast } from "sonner";
 
-const CAMPAIGN_GOALS = [
+const FALLBACK_CAMPAIGN_GOALS = [
   "Educate professionals",
   "Drive saves",
   "Build founder authority",
@@ -34,6 +37,8 @@ const CAMPAIGN_GOALS = [
 export default function RepurposePage() {
   const [variants, setVariants] = useState<RepurposeVariant[]>([]);
   const [loading, setLoading] = useState(false);
+  const { values: dv } = useDropdownValues();
+  const searchParams = useSearchParams();
 
   const {
     register,
@@ -45,6 +50,17 @@ export default function RepurposePage() {
     resolver: zodResolver(repurposeBriefSchema),
     defaultValues: { campaignGoal: "", tone: "" },
   });
+
+  // Pre-fill original content from query param (e.g. from Content Generator)
+  useEffect(() => {
+    const content = searchParams.get("content");
+    if (content) {
+      setValue("originalContent", decodeURIComponent(content), { shouldValidate: true });
+    }
+  }, [searchParams, setValue]);
+
+  const campaignGoals = dv?.repurpose.campaignGoals ?? FALLBACK_CAMPAIGN_GOALS;
+  const tones = dv?.repurpose.tones ?? TONES;
 
   const values = watch();
 
@@ -110,7 +126,7 @@ export default function RepurposePage() {
                 <Select value={values.campaignGoal} onValueChange={(v) => setValue("campaignGoal", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {CAMPAIGN_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    {campaignGoals.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
@@ -124,7 +140,7 @@ export default function RepurposePage() {
                 <Select value={values.tone} onValueChange={(v) => setValue("tone", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {TONES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {tones.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
@@ -200,7 +216,17 @@ function VariantCard({ variant }: { variant: RepurposeVariant }) {
           <Button variant="outline" size="sm" onClick={() => toast.success("Approved")}>
             <Check className="h-3.5 w-3.5" /> Approve
           </Button>
-          <Button size="sm" onClick={() => toast.success("Sent to Approval Queue")}>
+          <Button size="sm" onClick={async () => {
+            const result = await sendToApproval({
+              type: "Repurposed Posts",
+              title: `${variant.platform} variant`,
+              preview: variant.hook,
+              aiSource: "AI · repurpose",
+              brandSafety: "Pending review.",
+            });
+            if (result.success) toast.success("Sent to Approval Queue");
+            else toast.error(result.error || "Failed to send to approval");
+          }}>
             <Send className="h-3.5 w-3.5" /> Send to approval
           </Button>
         </div>

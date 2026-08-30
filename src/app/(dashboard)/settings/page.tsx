@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   ShieldCheck, Plus, Loader2, Eye, EyeOff, Key, Save,
-  Brain, Bell, Plug, Users, Sparkles, AlertCircle, Mail,
+  Brain, Bell, Plug, Users, Sparkles, AlertCircle, Mail, ListFilter,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { DropdownValuesEditor } from "@/components/settings/dropdown-values-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,6 +115,7 @@ export default function SettingsPage() {
           <TabsTrigger value="email" className="text-xs"><Mail className="h-3.5 w-3.5" /> Email</TabsTrigger>
           <TabsTrigger value="notifications" className="text-xs"><Bell className="h-3.5 w-3.5" /> Notifications</TabsTrigger>
           <TabsTrigger value="workspace" className="text-xs"><Key className="h-3.5 w-3.5" /> Workspace</TabsTrigger>
+          <TabsTrigger value="dropdowns" className="text-xs"><ListFilter className="h-3.5 w-3.5" /> Dropdown Values</TabsTrigger>
           <TabsTrigger value="team" className="text-xs"><Users className="h-3.5 w-3.5" /> Team</TabsTrigger>
         </TabsList>
 
@@ -487,6 +489,28 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* ─── Team ─── */}
+        {/* ─── Dropdown Values ─── */}
+        <TabsContent value="dropdowns" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ListFilter className="h-4 w-4 text-primary" /> Dropdown Values
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Manage the dropdown options used across all modules. Add or remove values for each field — changes apply to all forms after saving.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {settings.dropdownValues && (
+                <DropdownValuesEditor
+                  values={settings.dropdownValues}
+                  onChange={(dv) => update("dropdownValues", dv)}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="team" className="space-y-4">
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">

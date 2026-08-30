@@ -50,6 +50,45 @@ export interface EmailConfig {
   };
 }
 
+export interface DropdownValuesConfig {
+  content: {
+    contentGoals: string[];
+    platforms: string[];
+    tones: string[];
+    contentTypes: string[];
+  };
+  scripts: {
+    categories: string[];
+    lengths: string[];
+    speakers: string[];
+    tones: string[];
+  };
+  images: {
+    purposes: string[];
+    platforms: string[];
+    aspectRatios: string[];
+    imageTypes: string[];
+  };
+  repurpose: {
+    campaignGoals: string[];
+    tones: string[];
+    platforms: string[];
+  };
+  knowledge: {
+    categories: string[];
+    priorities: string[];
+  };
+  outreach: {
+    creatorCategories: string[];
+    channels: string[];
+    types: string[];
+  };
+  approvals: {
+    types: string[];
+    statuses: string[];
+  };
+}
+
 export interface AppSettings {
   brandVoice: BrandVoiceConfig;
   guardrails: Record<string, boolean>;
@@ -58,6 +97,7 @@ export interface AppSettings {
   integrations: IntegrationConfig;
   email: EmailConfig;
   workspace: WorkspaceConfig;
+  dropdownValues: DropdownValuesConfig;
 }
 
 /** Default settings used when no DB record exists. */
@@ -120,6 +160,44 @@ export const defaultSettings: AppSettings = {
   workspace: {
     name: "GrowthCo",
     productName: "AI Growth Suite",
+  },
+  dropdownValues: {
+    content: {
+      contentGoals: ["Educate professional audience", "Drive product saves", "Build founder authority", "Promote new launch"],
+      platforms: ["Instagram", "TikTok", "LinkedIn", "X / Twitter", "Facebook"],
+      tones: ["Educational, calm", "Confident, founder-led", "Warm, conversational", "Bold, opinionated"],
+      contentTypes: ["Instagram caption", "Facebook post", "LinkedIn post", "Twitter/X post", "Carousel concept", "Infographic concept", "Product education", "Professional education", "Short-form video script", "UGC collab prompt"],
+    },
+    scripts: {
+      categories: ["Product education", "How-to tutorial", "Founder thought leadership", "Industry commentary", "Myth busting", "Professional training", "Partner education", "Reseller education", "UGC collab prompt"],
+      lengths: ["15 seconds", "30 seconds", "60 seconds", "90 seconds"],
+      speakers: ["Founder", "Team educator", "UGC creator"],
+      tones: ["Educational, calm", "Confident, founder-led", "Warm, conversational", "Bold, opinionated"],
+    },
+    images: {
+      purposes: ["Carousel cover", "Product hero", "Educational visual"],
+      platforms: ["Instagram", "TikTok", "LinkedIn", "X / Twitter", "Facebook"],
+      aspectRatios: ["1:1 Square", "4:5 Portrait", "9:16 Vertical", "16:9 Landscape"],
+      imageTypes: ["Product visual", "Infographic", "Carousel support", "Educational visual", "Campaign creative", "Social post"],
+    },
+    repurpose: {
+      campaignGoals: ["Educate professionals", "Drive saves", "Build founder authority", "Promote new launch"],
+      tones: ["Educational, calm", "Confident, founder-led", "Warm, conversational", "Bold, opinionated"],
+      platforms: ["Instagram", "TikTok", "LinkedIn", "X / Twitter", "Facebook"],
+    },
+    knowledge: {
+      categories: ["New product", "New offering", "Promotion", "Training program", "Distributor info", "Campaign priority", "Audience segment", "Approved language", "Claims to avoid", "Brand positioning", "Founder notes", "Seasonal messaging"],
+      priorities: ["Low", "Medium", "High", "Critical"],
+    },
+    outreach: {
+      creatorCategories: ["Influencer", "UGC creator", "Content creator", "Industry expert", "Thought leader", "Affiliate partner", "Reseller", "Consultant", "Brand ambassador"],
+      channels: ["Instagram DM", "Email", "TikTok DM", "LinkedIn DM"],
+      types: ["Intro", "Partnership invite", "UGC brief", "Follow-up", "Collab pitch"],
+    },
+    approvals: {
+      types: ["Content", "Images", "Scripts", "Repurposed Posts", "Outreach", "Prospect Lists"],
+      statuses: ["Drafted", "Needs Review", "Needs Revision", "Approved", "Scheduled", "Rejected", "Sent"],
+    },
   },
 };
 

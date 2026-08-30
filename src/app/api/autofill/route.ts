@@ -93,7 +93,18 @@ The "content" field should be a markdown document with headers, bullet points, a
         const start = text.indexOf("{");
         const end = text.lastIndexOf("}");
         if (start !== -1 && end !== -1) text = text.slice(start, end + 1);
-        fields = JSON.parse(text);
+
+        try {
+          fields = JSON.parse(text);
+        } catch {
+          // AI sometimes returns unescaped newlines inside string values.
+          // Try a more lenient parse by escaping raw newlines/tabs.
+          const sanitized = text
+            .replace(/(?<!\\)\n/g, "\\n")
+            .replace(/(?<!\\)\t/g, "\\t")
+            .replace(/(?<!\\)\r/g, "\\r");
+          fields = JSON.parse(sanitized);
+        }
       } else {
         fields = mockFill(formType);
       }

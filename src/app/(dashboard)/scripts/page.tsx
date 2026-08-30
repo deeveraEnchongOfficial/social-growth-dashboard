@@ -21,6 +21,8 @@ import {
 import { EmptyState } from "@/components/shared/states";
 import { scriptBriefSchema, type ScriptBriefValues } from "@/lib/schemas";
 import { VIDEO_CATEGORIES, VIDEO_LENGTHS, SPEAKERS, TONES } from "@/lib/constants";
+import { useDropdownValues } from "@/lib/hooks/use-dropdown-values";
+import { sendToApproval } from "@/lib/approval-helpers";
 import type { VideoScript } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -29,6 +31,13 @@ export default function ScriptsPage() {
   const [script, setScript] = useState<VideoScript | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { values: dv } = useDropdownValues();
+
+  const categories = dv?.scripts.categories ?? VIDEO_CATEGORIES;
+  const lengths = dv?.scripts.lengths ?? VIDEO_LENGTHS;
+  const speakers = dv?.scripts.speakers ?? SPEAKERS;
+  const tones = dv?.scripts.tones ?? TONES;
+
   const [activeCategory, setActiveCategory] = useState<string>(VIDEO_CATEGORIES[1]);
 
   const {
@@ -138,7 +147,7 @@ ${s.platformRecs}
 
       {/* Category chips */}
       <div className="flex flex-wrap gap-2">
-        {VIDEO_CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => {
@@ -186,7 +195,7 @@ ${s.platformRecs}
                   <Select value={values.length} onValueChange={(v) => setValue("length", v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {VIDEO_LENGTHS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                      {lengths.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -196,7 +205,7 @@ ${s.platformRecs}
                   <Select value={values.speaker} onValueChange={(v) => setValue("speaker", v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {SPEAKERS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {speakers.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -204,7 +213,7 @@ ${s.platformRecs}
                   <Select value={values.tone} onValueChange={(v) => setValue("tone", v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TONES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {tones.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -326,7 +335,18 @@ function ScriptPreview({
           <Button variant="outline" size="sm" onClick={() => toast.info("Edit mode")}><Pencil className="h-4 w-4" /> Edit</Button>
           <Button variant="outline" size="sm" onClick={() => toast.success("Draft saved")}><Save className="h-4 w-4" /> Save draft</Button>
           <Button variant="outline" size="sm" onClick={() => toast.success("Sent to Repurposing")}><Repeat2 className="h-4 w-4" /> Repurpose</Button>
-          <Button size="sm" onClick={() => toast.success("Sent to Approval Queue")}><Send className="h-4 w-4" /> Send to approval</Button>
+          <Button size="sm" onClick={async () => {
+            if (!script) return;
+            const result = await sendToApproval({
+              type: "Scripts",
+              title: `${script.length} ${script.category}`,
+              preview: script.hook,
+              aiSource: "AI · script-gen",
+              brandSafety: "Pending review.",
+            });
+            if (result.success) toast.success("Sent to Approval Queue");
+            else toast.error(result.error || "Failed to send to approval");
+          }}><Send className="h-4 w-4" /> Send to approval</Button>
         </div>
       </CardContent>
     </Card>

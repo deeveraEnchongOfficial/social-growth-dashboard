@@ -274,6 +274,7 @@ const settingsSchema = new Schema(
       name: { type: String, default: "GrowthCo" },
       productName: { type: String, default: "AI Growth Suite" },
     },
+    dropdownValues: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );

@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkles, RotateCw, Pencil, Save, Repeat2, ImagePlus, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/states";
+import { sendToApproval } from "@/lib/approval-helpers";
 import type { ContentDraft } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -17,6 +20,8 @@ export function ContentPreview({
   loading: boolean;
   onRegenerate: () => void;
 }) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
   if (loading) {
     return (
       <Card className="flex h-full items-center justify-center">
@@ -96,16 +101,55 @@ export function ContentPreview({
           <Button variant="outline" size="sm" onClick={() => toast.info("Edit mode")}>
             <Pencil className="h-4 w-4" /> Edit
           </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.success("Draft saved")}>
-            <Save className="h-4 w-4" /> Save draft
+          <Button variant="outline" size="sm" disabled={saving} onClick={async () => {
+            if (!draft) return;
+            setSaving(true);
+            try {
+              const res = await fetch("/api/drafts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify(draft),
+              });
+              if (!res.ok) throw new Error("Failed to save");
+              toast.success("Draft saved to database");
+            } catch {
+              toast.error("Failed to save draft");
+            } finally {
+              setSaving(false);
+            }
+          }}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save draft
           </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.success("Sent to Repurposing")}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!draft) return;
+            const content = encodeURIComponent(`${draft.hook}\n\n${draft.caption}\n\n${draft.cta}`);
+            router.push(`/repurpose?content=${content}`);
+          }}>
             <Repeat2 className="h-4 w-4" /> Repurpose
           </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.success("Sent to Image Studio")}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!draft) return;
+            const topic = encodeURIComponent(draft.visualSuggestion || draft.title);
+            router.push(`/images?topic=${topic}`);
+          }}>
             <ImagePlus className="h-4 w-4" /> Generate image
           </Button>
-          <Button size="sm" onClick={() => toast.success("Sent to Approval Queue")}>
+          <Button
+            size="sm"
+            onClick={async () => {
+              if (!draft) return;
+              const result = await sendToApproval({
+                type: "Content",
+                title: draft.title,
+                preview: draft.hook,
+                aiSource: "AI · content-gen",
+                brandSafety: draft.brandSafety,
+              });
+              if (result.success) toast.success("Sent to Approval Queue");
+              else toast.error(result.error || "Failed to send to approval");
+            }}
+          >
             <Send className="h-4 w-4" /> Send to approval
           </Button>
         </div>

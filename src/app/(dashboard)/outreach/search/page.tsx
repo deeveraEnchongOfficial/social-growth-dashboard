@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { creators } from "@/lib/mock/data";
 import { CREATOR_CATEGORIES, PLATFORMS } from "@/lib/constants";
+import { useDropdownValues } from "@/lib/hooks/use-dropdown-values";
 import type { Creator } from "@/lib/types";
 import { formatNumber, initials, cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -27,6 +28,9 @@ export default function CreatorSearchPage() {
   const [platform, setPlatform] = useState("all");
   const [query, setQuery] = useState("");
   const [list, setList] = useState<Creator[]>(creators);
+  const { values: dv } = useDropdownValues();
+  const creatorCategories = dv?.outreach.creatorCategories ?? CREATOR_CATEGORIES;
+  const platforms = dv?.outreach.channels ?? PLATFORMS;
 
   const filtered = useMemo(
     () =>
@@ -61,7 +65,7 @@ export default function CreatorSearchPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {CREATOR_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {creatorCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={platform} onValueChange={setPlatform}>
@@ -70,7 +74,7 @@ export default function CreatorSearchPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              {platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
             </SelectContent>
           </Select>
           <Badge variant="muted" className="text-xs">Followers: 1k – 250k</Badge>

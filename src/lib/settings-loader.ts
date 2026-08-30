@@ -5,6 +5,7 @@ import {
   type AppSettings,
   type AiProviderConfig,
   type EmailConfig,
+  type DropdownValuesConfig,
 } from "./config";
 
 /**
@@ -57,9 +58,32 @@ export async function loadSettings(): Promise<AppSettings> {
       ...defaultSettings.workspace,
       ...(doc.workspace as Record<string, string>),
     },
+    dropdownValues: mergeDropdownValues(
+      defaultSettings.dropdownValues,
+      (doc.dropdownValues as Partial<DropdownValuesConfig>) ?? {}
+    ),
   };
 
   return mergeEnv(settings);
+}
+
+/**
+ * Deep-merge dropdown values from DB over defaults.
+ * Ensures every module/field exists even if DB only has partial data.
+ */
+function mergeDropdownValues(
+  defaults: DropdownValuesConfig,
+  fromDb: Partial<DropdownValuesConfig>
+): DropdownValuesConfig {
+  const result = { ...defaults };
+  for (const moduleKey of Object.keys(defaults) as (keyof DropdownValuesConfig)[]) {
+    const dbModule = fromDb[moduleKey];
+    if (dbModule) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (result as any)[moduleKey] = { ...defaults[moduleKey], ...dbModule };
+    }
+  }
+  return result;
 }
 
 /**

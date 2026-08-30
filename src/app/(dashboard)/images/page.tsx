@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePlus, Loader2, Sparkles, Download, RotateCw, Save, Send, ShieldCheck } from "lucide-react";
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { imageBriefSchema, type ImageBriefValues } from "@/lib/schemas";
 import { IMAGE_PURPOSES, PLATFORMS, ASPECT_RATIOS, IMAGE_TYPES } from "@/lib/constants";
+import { useDropdownValues } from "@/lib/hooks/use-dropdown-values";
+import { sendToApproval } from "@/lib/approval-helpers";
 import type { GeneratedImage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -27,6 +30,8 @@ import { toast } from "sonner";
 export default function ImagesPage() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(false);
+  const { values: dv } = useDropdownValues();
+  const searchParams = useSearchParams();
 
   const {
     register,
@@ -43,6 +48,19 @@ export default function ImagesPage() {
       imageType: "",
     },
   });
+
+  // Pre-fill topic from query param (e.g. from Content Generator)
+  useEffect(() => {
+    const topic = searchParams.get("topic");
+    if (topic) {
+      setValue("topic", decodeURIComponent(topic), { shouldValidate: true });
+    }
+  }, [searchParams, setValue]);
+
+  const purposes = dv?.images.purposes ?? IMAGE_PURPOSES;
+  const platforms = dv?.images.platforms ?? PLATFORMS;
+  const aspectRatios = dv?.images.aspectRatios ?? ASPECT_RATIOS;
+  const imageTypes = dv?.images.imageTypes ?? IMAGE_TYPES;
 
   const values = watch();
 
@@ -100,7 +118,7 @@ export default function ImagesPage() {
                 <Select value={values.purpose} onValueChange={(v) => setValue("purpose", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {IMAGE_PURPOSES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    {purposes.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
@@ -109,7 +127,7 @@ export default function ImagesPage() {
                   <Select value={values.platform} onValueChange={(v) => setValue("platform", v, { shouldValidate: true })}>
                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
-                      {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      {platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -117,7 +135,7 @@ export default function ImagesPage() {
                   <Select value={values.aspectRatio} onValueChange={(v) => setValue("aspectRatio", v, { shouldValidate: true })}>
                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
-                      {ASPECT_RATIOS.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                      {aspectRatios.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -146,7 +164,7 @@ export default function ImagesPage() {
                 <Select value={values.imageType} onValueChange={(v) => setValue("imageType", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {IMAGE_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {imageTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
@@ -246,7 +264,17 @@ function ImageCard({ image }: { image: GeneratedImage }) {
           <Button variant="outline" size="sm" onClick={() => toast.success("Saved")}>
             <Save className="h-3.5 w-3.5" /> Save
           </Button>
-          <Button size="sm" onClick={() => toast.success("Sent to Approval Queue")}>
+          <Button size="sm" onClick={async () => {
+            const result = await sendToApproval({
+              type: "Images",
+              title: image.title,
+              preview: image.description,
+              aiSource: "AI · image-gen",
+              brandSafety: `Brand fit ${image.brandFitScore}%`,
+            });
+            if (result.success) toast.success("Sent to Approval Queue");
+            else toast.error(result.error || "Failed to send to approval");
+          }}>
             <Send className="h-3.5 w-3.5" /> Send to approval
           </Button>
         </div>

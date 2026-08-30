@@ -93,6 +93,9 @@ function mergeSettings(current: AppSettings, incoming: Partial<AppSettings>): Ap
         ...incoming.email?.smtp,
       },
     },
+    dropdownValues: incoming.dropdownValues
+      ? { ...current.dropdownValues, ...incoming.dropdownValues }
+      : current.dropdownValues,
   };
 
   // Preserve API keys that were masked on the client

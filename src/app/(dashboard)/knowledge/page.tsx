@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { knowledgeEntrySchema, type KnowledgeEntryValues } from "@/lib/schemas";
 import { KNOWLEDGE_CATEGORIES } from "@/lib/constants";
+import { useDropdownValues } from "@/lib/hooks/use-dropdown-values";
 import type { KnowledgeEntry, Priority } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -49,6 +50,8 @@ export default function KnowledgePage() {
   const [saving, setSaving] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
   const [previewMode, setPreviewMode] = useState(false);
+  const { values: dv } = useDropdownValues();
+  const categories = dv?.knowledge.categories ?? KNOWLEDGE_CATEGORIES;
   const [selectedEntry, setSelectedEntry] = useState<KnowledgeEntry | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -302,7 +305,7 @@ export default function KnowledgePage() {
                 <Select value={values.category} onValueChange={(v) => setValue("category", v, { shouldValidate: true })}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {KNOWLEDGE_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>

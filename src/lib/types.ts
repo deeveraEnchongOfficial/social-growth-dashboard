@@ -226,6 +226,12 @@ export interface KnowledgeEntry {
   updated: string;
   usedIn: number;
   status: "Active" | "Archived";
+  /** Markdown content used to train the AI. */
+  content: string;
+  /** Original filename if uploaded as a .md file. */
+  filename?: string;
+  /** Word count of the markdown content. */
+  wordCount?: number;
 }
 
 export interface Creator {

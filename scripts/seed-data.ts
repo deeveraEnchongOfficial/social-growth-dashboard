@@ -101,12 +101,161 @@ export const seedData = {
   ],
 
   knowledgeEntries: [
-    { title: "Spring growth campaign", description: "Lead Q2 messaging around the new product launch.", category: "Campaign priority", priority: "High", usedCount: 142, status: "Active" },
-    { title: "Approved product language", description: "Pre-approved phrasing for features, benefits, and value props.", category: "Approved language", priority: "High", usedCount: 318, status: "Active" },
-    { title: "Claims to avoid — unsubstantiated", description: "No hype, exaggeration, or unsubstantiated claims.", category: "Claims to avoid", priority: "Critical", usedCount: 412, status: "Active" },
-    { title: "Partner program", description: "Partnership tiers, minimums, and partner verification.", category: "Partner info", priority: "Medium", usedCount: 64, status: "Active" },
-    { title: "Founder origin story", description: "Approved short and long-form founder narrative.", category: "Founder notes", priority: "Medium", usedCount: 88, status: "Active" },
-    { title: "Holiday Q4 priorities", description: "Gifting bundles for partners and end customers.", category: "Seasonal messaging", priority: "Low", usedCount: 12, status: "Archived" },
+    {
+      title: "Q2 product launch campaign",
+      description: "Lead Q2 messaging around the product launch.",
+      category: "Campaign priority",
+      priority: "High",
+      usedCount: 142,
+      status: "Active",
+      content: `# Q2 Product Launch Campaign
+
+## Overview
+The Q2 launch focuses on positioning GrowthCo Pro as the go-to growth platform for SaaS founders.
+
+## Key Messages
+- **Data-driven growth** — every decision backed by metrics
+- **Founder-led authority** — built by operators, for operators
+- **Practical onboarding** — 30-second audits, not 30-page reports
+
+## Target Audience
+Early-stage SaaS founders (Seed to Series A) struggling with funnel optimization.
+
+## CTA Guidelines
+- Use "Save this for your next review"
+- Use "Share with a founder who needs this"
+- Avoid "Buy now" or aggressive sales language
+
+## Channels
+Instagram carousels, LinkedIn thought leadership, TikTok how-to shorts.`,
+      wordCount: 98,
+    },
+    {
+      title: "Approved product language",
+      description: "Pre-approved phrasing for product descriptions and feature names.",
+      category: "Approved language",
+      priority: "High",
+      usedCount: 318,
+      status: "Active",
+      content: `# Approved Product Language
+
+## Product Names
+- **GrowthCo Pro** — the main subscription tier
+- **GrowthCo Lite** — the free tier
+- **GrowthCo Analytics** — the reporting module
+
+## Approved Phrasing
+- "Built for growing teams"
+- "Designed for modern marketers"
+- "Trusted by data-driven brands"
+- "Your growth playbook, automated"
+
+## Feature Descriptions
+- **AI Content Generator** — "On-brand content in seconds, not hours"
+- **Outreach Automation** — "Personalized outreach that scales without losing the human touch"
+- **Performance Analytics** — "See what works, double down on what converts"
+
+## Do NOT Use
+- "AI-powered magic"
+- "Revolutionary"
+- "Game-changing"
+- "Best in class" (without source)`,
+      wordCount: 112,
+    },
+    {
+      title: "Claims to avoid — unsubstantiated",
+      description: "No unsubstantiated claims, guaranteed results, or exaggerated outcomes.",
+      category: "Claims to avoid",
+      priority: "Critical",
+      usedCount: 412,
+      status: "Active",
+      content: `# Claims to Avoid
+
+## Strictly Prohibited
+- **No unsubstantiated claims** — every stat must have a source
+- **No guaranteed results** — "guaranteed to grow" is banned
+- **No exaggerated outcomes** — "10x your revenue" is banned
+- **No before/after promises** — individual results vary
+
+## Requires Source
+- Any percentage claim ("increases conversions by 40%")
+- Any comparison to competitors ("better than X")
+- Any testimonial-adjacent language
+
+## Safe Alternatives
+- "Helps you identify" instead of "guarantees you'll find"
+- "Designed to support" instead of "proven to deliver"
+- "Many teams use" instead of "everyone uses"`,
+      wordCount: 95,
+    },
+    {
+      title: "Partner program details",
+      description: "Partner tiers, minimums, and qualification criteria.",
+      category: "Distributor info",
+      priority: "Medium",
+      usedCount: 64,
+      status: "Active",
+      content: `# Partner Program Details
+
+## Tiers
+1. **Starter Partner** — 5+ active referrals, 10% revenue share
+2. **Growth Partner** — 25+ active referrals, 15% revenue share
+3. **Elite Partner** — 100+ active referrals, 20% revenue share + co-marketing
+
+## Qualification Criteria
+- Must be an active GrowthCo Pro subscriber
+- Must complete partner onboarding (2 hours)
+- Must maintain minimum 5 active referrals per quarter
+
+## Co-Branding Rules
+- Use "GrowthCo Partner" badge in marketing
+- Do not imply exclusive partnership
+- All co-branded content requires approval`,
+      wordCount: 82,
+    },
+    {
+      title: "Founder origin story",
+      description: "Approved short and long-form founder narrative.",
+      category: "Founder notes",
+      priority: "Medium",
+      usedCount: 88,
+      status: "Active",
+      content: `# Founder Origin Story
+
+## Short Version (30 seconds)
+GrowthCo started when our founder realized most growth advice was theoretical. After scaling three SaaS companies, he built the tool he wished he had — one that turns data into action in 30 seconds, not 30 days.
+
+## Long Version (2 minutes)
+Our founder spent a decade building and scaling SaaS companies. Every time he hit a growth plateau, the advice was the same: "just add more traffic." But the data told a different story — the funnel was leaking, not starving.
+
+He started GrowthCo to solve this. The platform combines AI-driven content generation, outreach automation, and performance analytics into one workflow. The goal: help founders spend less time guessing and more time growing.
+
+## Key Themes
+- Practical over theoretical
+- Data-driven over opinion-driven
+- Founder-led over corporate`,
+      wordCount: 130,
+    },
+    {
+      title: "Holiday Q4 priorities",
+      description: "Year-end bundles for partners and end customers.",
+      category: "Seasonal messaging",
+      priority: "Low",
+      usedCount: 12,
+      status: "Archived",
+      content: `# Holiday Q4 Priorities
+
+## Campaigns
+- **Black Friday Bundle** — GrowthCo Pro + Analytics at 30% off
+- **Partner Year-End Push** — bonus revenue share for Q4 referrals
+- **New Year Planning** — "Set up your 2025 growth stack" content series
+
+## Messaging Guidelines
+- Focus on planning and preparation, not urgency
+- Avoid "last chance" language until final week
+- Emphasize "start the year ahead" over "don't miss out"`,
+      wordCount: 65,
+    },
   ],
 
   creators: [

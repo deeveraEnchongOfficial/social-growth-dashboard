@@ -4,6 +4,7 @@ import {
   defaultSettings,
   type AppSettings,
   type AiProviderConfig,
+  type EmailConfig,
 } from "./config";
 
 /**
@@ -43,6 +44,14 @@ export async function loadSettings(): Promise<AppSettings> {
     integrations: {
       ...defaultSettings.integrations,
       ...(doc.integrations as Record<string, { apiKey: string; status: string }>),
+    },
+    email: {
+      ...defaultSettings.email,
+      ...((doc.email as Partial<EmailConfig>) ?? {}),
+      smtp: {
+        ...defaultSettings.email.smtp,
+        ...((doc.email as { smtp?: Partial<EmailConfig["smtp"]> })?.smtp ?? {}),
+      },
     },
     workspace: {
       ...defaultSettings.workspace,

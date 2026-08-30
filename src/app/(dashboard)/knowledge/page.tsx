@@ -1,14 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, MoreHorizontal, Archive, Trash2, Pencil, Brain } from "lucide-react";
+import {
+  Plus, MoreHorizontal, Archive, Trash2, Pencil, Brain,
+  Eye, Code, Copy, Check, X, Loader2, RefreshCw,
+} from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { AiFillButton } from "@/components/shared/ai-fill-button";
+import { MarkdownPreview } from "@/components/shared/markdown-preview";
 import { DataTable } from "@/components/shared/data-table";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +31,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { knowledgeEntrySchema, type KnowledgeEntryValues } from "@/lib/schemas";
-import { knowledgeEntries } from "@/lib/mock/data";
 import { KNOWLEDGE_CATEGORIES } from "@/lib/constants";
 import type { KnowledgeEntry, Priority } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -42,8 +44,13 @@ const priorityVariant: Record<Priority, string> = {
 };
 
 export default function KnowledgePage() {
-  const [items, setItems] = useState<KnowledgeEntry[]>(knowledgeEntries);
+  const [items, setItems] = useState<KnowledgeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [previewMode, setPreviewMode] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<KnowledgeEntry | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const {
     register,
@@ -54,10 +61,29 @@ export default function KnowledgePage() {
     formState: { errors },
   } = useForm<KnowledgeEntryValues>({
     resolver: zodResolver(knowledgeEntrySchema),
-    defaultValues: { category: "", priority: "" },
+    defaultValues: { category: "", priority: "", content: "" },
   });
 
   const values = watch();
+
+  /** Fetch knowledge entries from the API. */
+  async function fetchEntries() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/knowledge");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setItems(data.entries || []);
+    } catch {
+      toast.error("Failed to load knowledge entries");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchEntries();
+  }, []);
 
   const filtered = useMemo(() => {
     if (activeFilter === "All") return items;
@@ -66,20 +92,69 @@ export default function KnowledgePage() {
     return items.filter((i) => i.priority === activeFilter);
   }, [items, activeFilter]);
 
-  function onSubmit(data: KnowledgeEntryValues) {
-    const newEntry: KnowledgeEntry = {
-      id: `k_${Date.now()}`,
-      title: data.title,
-      description: data.description,
-      category: data.category as KnowledgeEntry["category"],
-      priority: data.priority as Priority,
-      updated: "Just now",
-      usedIn: 0,
-      status: "Active",
-    };
-    setItems((prev) => [newEntry, ...prev]);
-    reset({ category: "", priority: "" });
-    toast.success("Saved to AI memory");
+  function countWords(text: string): number {
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  }
+
+  async function onSubmit(data: KnowledgeEntryValues) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/knowledge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      const json = await res.json();
+      setItems((prev) => [json.entry, ...prev]);
+      reset({ category: "", priority: "", content: "" });
+      setPreviewMode(false);
+      toast.success("Saved to AI memory");
+    } catch {
+      toast.error("Failed to save — try again");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function updateStatus(id: string, status: "Active" | "Archived") {
+    try {
+      const res = await fetch(`/api/knowledge/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, status } : i))
+      );
+      toast.success(status === "Archived" ? "Archived" : "Activated");
+    } catch {
+      toast.error("Failed to update");
+    }
+  }
+
+  async function deleteEntry(id: string) {
+    try {
+      const res = await fetch(`/api/knowledge/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      setItems((prev) => prev.filter((i) => i.id !== id));
+      toast.success("Deleted");
+    } catch {
+      toast.error("Failed to delete");
+    }
+  }
+
+  async function copyContent(content: string) {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Markdown copied");
+    } catch {
+      toast.error("Failed to copy");
+    }
   }
 
   const columns: ColumnDef<KnowledgeEntry>[] = useMemo(
@@ -104,6 +179,15 @@ export default function KnowledgePage() {
           </span>
         ),
       },
+      {
+        accessorKey: "wordCount",
+        header: "Words",
+        cell: ({ row }) => (
+          <span className="tabular-nums text-xs text-muted-foreground">
+            {row.original.wordCount ?? "—"}
+          </span>
+        ),
+      },
       { accessorKey: "updated", header: "Updated" },
       {
         accessorKey: "usedIn",
@@ -113,7 +197,20 @@ export default function KnowledgePage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => (
+          <Select
+            value={row.original.status}
+            onValueChange={(v) => updateStatus(row.original.id, v as "Active" | "Archived")}
+          >
+            <SelectTrigger className="h-7 w-[110px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+        ),
       },
       {
         id: "actions",
@@ -126,27 +223,31 @@ export default function KnowledgePage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setSelectedEntry(row.original)}>
+                <Eye className="h-4 w-4" /> View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => copyContent(row.original.content)}>
+                <Copy className="h-4 w-4" /> Copy MD
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toast.info("Edit mode")}>
                 <Pencil className="h-4 w-4" /> Edit
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setItems((prev) =>
-                    prev.map((i) =>
-                      i.id === row.original.id ? { ...i, status: "Archived" } : i
-                    )
-                  );
-                  toast.success("Archived");
-                }}
-              >
-                <Archive className="h-4 w-4" /> Archive
-              </DropdownMenuItem>
+              {row.original.status === "Active" ? (
+                <DropdownMenuItem
+                  onClick={() => updateStatus(row.original.id, "Archived")}
+                >
+                  <Archive className="h-4 w-4" /> Archive
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => updateStatus(row.original.id, "Active")}
+                >
+                  <RefreshCw className="h-4 w-4" /> Activate
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => {
-                  setItems((prev) => prev.filter((i) => i.id !== row.original.id));
-                  toast.success("Deleted");
-                }}
+                onClick={() => deleteEntry(row.original.id)}
               >
                 <Trash2 className="h-4 w-4" /> Delete
               </DropdownMenuItem>
@@ -163,11 +264,11 @@ export default function KnowledgePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Business Knowledge Memory"
-        description="Anything you teach the AI here shapes every future caption, script, image prompt, and outreach message."
+        title="Brand Reference Library"
+        description="Paste markdown to train the AI. Everything here shapes every caption, script, image prompt, and outreach message."
         actions={
-          <Button size="sm" onClick={() => toast.info("Scroll to form")}>
-            <Plus className="h-4 w-4" /> Add knowledge
+          <Button size="sm" variant="outline" onClick={fetchEntries} disabled={loading}>
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} /> Refresh
           </Button>
         }
       />
@@ -190,7 +291,7 @@ export default function KnowledgePage() {
                 }}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Teach the AI something about GrowthCo.</p>
+            <p className="text-xs text-muted-foreground">Paste markdown text to train the AI.</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -213,31 +314,55 @@ export default function KnowledgePage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Description" error={errors.description?.message}>
-                <Textarea placeholder="Lead Q2 messaging around the product launch." {...register("description")} />
+              <Field label="Short description" error={errors.description?.message}>
+                <Input placeholder="One-line summary of what this teaches the AI" {...register("description")} />
               </Field>
-              <Field label="Related product / service">
-                <Input placeholder="e.g. GrowthCo Pro" {...register("relatedProduct")} />
+
+              {/* Markdown content input — paste only */}
+              <Field label="Markdown content" error={errors.content?.message}>
+                <div className="space-y-2">
+                  {/* Toggle bar */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPreviewMode(!previewMode)}
+                      disabled={!values.content}
+                    >
+                      {previewMode ? <Code className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      {previewMode ? "Edit" : "Preview"}
+                    </Button>
+                    {values.content && (
+                      <span className="text-xs text-muted-foreground">
+                        {countWords(values.content)} words
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Editor or Preview */}
+                  {previewMode ? (
+                    <div className="min-h-[200px] rounded-md border bg-background p-4">
+                      {values.content ? (
+                        <MarkdownPreview content={values.content} />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Nothing to preview yet.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <Textarea
+                      rows={12}
+                      placeholder={"# Paste your markdown here\n\n## Section\n- Bullet point\n- Another point\n\n**Bold** and *italic* supported."}
+                      className="font-mono text-xs"
+                      {...register("content")}
+                    />
+                  )}
+                </div>
               </Field>
-              <Field label="Approved messaging">
-                <Textarea placeholder="Pre-approved phrasing…" {...register("approvedMessaging")} />
-              </Field>
-              <Field label="Phrases to avoid">
-                <Textarea placeholder="No medical claims…" {...register("phrasesToAvoid")} />
-              </Field>
-              <Field label="Audience">
-                <Input placeholder="e.g. SaaS founders" {...register("audience")} />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Start date">
-                  <Input type="date" {...register("startDate")} />
-                </Field>
-                <Field label="Expiration (optional)">
-                  <Input type="date" {...register("expiration")} />
-                </Field>
-              </div>
-              <Button type="submit" className="w-full">
-                <Plus className="h-4 w-4" /> Save to AI memory
+
+              <Button type="submit" className="w-full" disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Save to AI memory
               </Button>
             </form>
           </CardContent>
@@ -264,9 +389,68 @@ export default function KnowledgePage() {
           <p className="text-sm text-muted-foreground">
             {filtered.length} entries currently used in AI outputs.
           </p>
-          <DataTable columns={columns} data={filtered} pageSize={10} />
+          {loading ? (
+            <Card>
+              <CardContent className="flex items-center justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </CardContent>
+            </Card>
+          ) : (
+            <DataTable columns={columns} data={filtered} pageSize={10} />
+          )}
         </div>
       </div>
+
+      {/* View modal */}
+      {selectedEntry && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setSelectedEntry(null)}
+        >
+          <Card
+            className="max-h-[80vh] w-full max-w-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-base">{selectedEntry.title}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{selectedEntry.description}</p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className={cn("text-xs font-semibold", priorityVariant[selectedEntry.priority])}>
+                      {selectedEntry.priority}
+                    </span>
+                    <span className="text-xs text-muted-foreground">·</span>
+                    <span className="text-xs text-muted-foreground">{selectedEntry.category}</span>
+                    {selectedEntry.wordCount != null && (
+                      <>
+                        <span className="text-xs text-muted-foreground">·</span>
+                        <span className="text-xs text-muted-foreground">{selectedEntry.wordCount} words</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyContent(selectedEntry.content)}
+                  >
+                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? "Copied" : "Copy MD"}
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedEntry(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="max-h-[60vh] overflow-y-auto">
+              <MarkdownPreview content={selectedEntry.content} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

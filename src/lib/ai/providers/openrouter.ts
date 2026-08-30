@@ -16,6 +16,7 @@ import type {
   OutreachBrief,
 } from "../types";
 import { loadSettings } from "@/lib/settings-loader";
+import { buildBrandContext } from "../brand-context";
 
 function id(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
@@ -84,9 +85,9 @@ export class OpenRouterProvider implements AiProvider {
 
   async generateContent(brief: ContentBrief): Promise<ContentDraft> {
     const settings = await loadSettings();
-    const bv = settings.brandVoice;
+    const brandContext = await buildBrandContext(settings);
 
-    const system = `You are a social media content writer for ${settings.workspace.name}. Brand voice: ${bv.tone}, ${bv.personality}. Words to use: ${bv.wordsToUse}. Words to avoid: ${bv.wordsToAvoid}. Approved claims: ${bv.approvedClaims}. Claims to avoid: ${bv.claimsToAvoid}. Return ONLY valid JSON, no markdown.`;
+    const system = `You are a social media content writer for ${settings.workspace.name}. ${brandContext} Return ONLY valid JSON, no markdown.`;
 
     const user = `Write a ${brief.contentType} for ${brief.platform}.
 Topic: ${brief.topic}
@@ -129,9 +130,9 @@ Return JSON with these exact fields:
 
   async generateScript(brief: ScriptBrief): Promise<VideoScript> {
     const settings = await loadSettings();
-    const bv = settings.brandVoice;
+    const brandContext = await buildBrandContext(settings);
 
-    const system = `You are a video script writer for ${settings.workspace.name}. Brand voice: ${bv.tone}, ${bv.personality}. Return ONLY valid JSON, no markdown.`;
+    const system = `You are a video script writer for ${settings.workspace.name}. ${brandContext} Return ONLY valid JSON, no markdown.`;
 
     const user = `Write a ${brief.length} video script.
 Topic: ${brief.topic}
@@ -242,9 +243,9 @@ The "prompt" field should be a detailed image generation prompt in English, suit
 
   async repurposeContent(brief: RepurposeBrief): Promise<RepurposeVariant[]> {
     const settings = await loadSettings();
-    const bv = settings.brandVoice;
+    const brandContext = await buildBrandContext(settings);
 
-    const system = `You are a content repurposing expert for ${settings.workspace.name}. Brand voice: ${bv.tone}. Return ONLY valid JSON, no markdown.`;
+    const system = `You are a content repurposing expert for ${settings.workspace.name}. ${brandContext} Return ONLY valid JSON, no markdown.`;
 
     const user = `Repurpose this content for multiple platforms:
 Original: "${brief.originalContent}"
@@ -286,8 +287,9 @@ Return JSON array:
 
   async generateOutreach(brief: OutreachBrief): Promise<Partial<OutreachMessage>> {
     const settings = await loadSettings();
+    const brandContext = await buildBrandContext(settings);
 
-    const system = `You are an outreach specialist for ${settings.workspace.name}. Write personalized, authentic messages. Return ONLY valid JSON, no markdown.`;
+    const system = `You are an outreach specialist for ${settings.workspace.name}. ${brandContext} Write personalized, authentic messages. Return ONLY valid JSON, no markdown.`;
 
     const user = `Write a ${brief.channel} outreach message.
 Creator: ${brief.creatorName} (${brief.handle})
@@ -321,8 +323,9 @@ Return JSON:
     posts: { caption: string; platform: Platform; engagementRate: number }[]
   ): Promise<AiStrategySummary> {
     const settings = await loadSettings();
+    const brandContext = await buildBrandContext(settings);
 
-    const system = `You are a social media analyst for ${settings.workspace.name}. Return ONLY valid JSON, no markdown.`;
+    const system = `You are a social media analyst for ${settings.workspace.name}. ${brandContext} Return ONLY valid JSON, no markdown.`;
 
     const user = `Analyze these posts and provide strategy:
 ${posts.map((p) => `- [${p.platform}] ${p.caption} (ER: ${p.engagementRate}%)`).join("\n")}

@@ -8,7 +8,6 @@ import type {
   GeneratedImage,
   RepurposeVariant,
   BrandReference,
-  KnowledgeEntry,
   Creator,
   OutreachMessage,
   ApprovalItem,
@@ -206,15 +205,6 @@ export const brandReferences: BrandReference[] = [
   { id: "b4", name: "Team training deck.pdf", type: "PDF", category: "Training content", tags: ["team", "training"], uploadedBy: "Founder", date: "Feb 28", usedFor: "Knowledge memory", status: "Active" },
   { id: "b5", name: "Founder voice notes.txt", type: "Text", category: "Captions", tags: ["voice", "founder"], uploadedBy: "Founder", date: "Jan 14", usedFor: "Content generator", status: "Active" },
   { id: "b6", name: "Competitor scan May.pdf", type: "PDF", category: "Competitor references", tags: ["competitor", "scan"], uploadedBy: "Alex M.", date: "May 20", usedFor: "Strategy", status: "Archived" },
-];
-
-export const knowledgeEntries: KnowledgeEntry[] = [
-  { id: "k1", title: "Q2 product launch campaign", description: "Lead Q2 messaging around the product launch.", category: "Campaign priority", priority: "High", updated: "2d ago", usedIn: 142, status: "Active" },
-  { id: "k2", title: "Approved product language", description: "Pre-approved phrasing for product descriptions and feature names.", category: "Approved language", priority: "High", updated: "1w ago", usedIn: 318, status: "Active" },
-  { id: "k3", title: "Claims to avoid — unsubstantiated", description: "No unsubstantiated claims, guaranteed results, or exaggerated outcomes.", category: "Claims to avoid", priority: "Critical", updated: "3w ago", usedIn: 412, status: "Active" },
-  { id: "k4", title: "Partner program details", description: "Partner tiers, minimums, and qualification criteria.", category: "Distributor info", priority: "Medium", updated: "1mo ago", usedIn: 64, status: "Active" },
-  { id: "k5", title: "Founder origin story", description: "Approved short and long-form founder narrative.", category: "Founder notes", priority: "Medium", updated: "2mo ago", usedIn: 88, status: "Active" },
-  { id: "k6", title: "Holiday Q4 priorities", description: "Year-end bundles for partners and end customers.", category: "Seasonal messaging", priority: "Low", updated: "6mo ago", usedIn: 12, status: "Archived" },
 ];
 
 export const integrations: Integration[] = [

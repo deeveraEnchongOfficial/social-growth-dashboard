@@ -63,6 +63,13 @@ function maskSettingsKeys(settings: AppSettings): AppSettings {
       tiktok: { ...settings.integrations.tiktok, apiKey: maskApiKey(settings.integrations.tiktok.apiKey) },
       instagram: { ...settings.integrations.instagram, apiKey: maskApiKey(settings.integrations.instagram.apiKey) },
     },
+    email: {
+      ...settings.email,
+      smtp: {
+        ...settings.email.smtp,
+        pass: maskApiKey(settings.email.smtp.pass),
+      },
+    },
   };
 }
 
@@ -78,6 +85,14 @@ function mergeSettings(current: AppSettings, incoming: Partial<AppSettings>): Ap
     workspace: { ...current.workspace, ...incoming.workspace },
     aiProviders: { ...current.aiProviders, ...incoming.aiProviders },
     integrations: { ...current.integrations, ...incoming.integrations },
+    email: {
+      ...current.email,
+      ...incoming.email,
+      smtp: {
+        ...current.email.smtp,
+        ...incoming.email?.smtp,
+      },
+    },
   };
 
   // Preserve API keys that were masked on the client
@@ -99,6 +114,11 @@ function mergeSettings(current: AppSettings, incoming: Partial<AppSettings>): Ap
     if (inc.gmail?.apiKey?.includes("••••")) int.gmail.apiKey = current.integrations.gmail.apiKey;
     if (inc.tiktok?.apiKey?.includes("••••")) int.tiktok.apiKey = current.integrations.tiktok.apiKey;
     if (inc.instagram?.apiKey?.includes("••••")) int.instagram.apiKey = current.integrations.instagram.apiKey;
+  }
+
+  // Preserve SMTP password if it arrived masked
+  if (incoming.email?.smtp?.pass?.includes("••••")) {
+    merged.email.smtp.pass = current.email.smtp.pass;
   }
 
   return merged;

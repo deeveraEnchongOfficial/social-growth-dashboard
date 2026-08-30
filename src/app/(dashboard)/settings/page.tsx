@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   ShieldCheck, Plus, Loader2, Eye, EyeOff, Key, Save,
-  Brain, Bell, Plug, Users, Sparkles, AlertCircle,
+  Brain, Bell, Plug, Users, Sparkles, AlertCircle, Mail,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,6 +111,7 @@ export default function SettingsPage() {
           <TabsTrigger value="guardrails" className="text-xs"><ShieldCheck className="h-3.5 w-3.5" /> Guardrails</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs"><Sparkles className="h-3.5 w-3.5" /> AI Providers</TabsTrigger>
           <TabsTrigger value="integrations" className="text-xs"><Plug className="h-3.5 w-3.5" /> Integrations</TabsTrigger>
+          <TabsTrigger value="email" className="text-xs"><Mail className="h-3.5 w-3.5" /> Email</TabsTrigger>
           <TabsTrigger value="notifications" className="text-xs"><Bell className="h-3.5 w-3.5" /> Notifications</TabsTrigger>
           <TabsTrigger value="workspace" className="text-xs"><Key className="h-3.5 w-3.5" /> Workspace</TabsTrigger>
           <TabsTrigger value="team" className="text-xs"><Users className="h-3.5 w-3.5" /> Team</TabsTrigger>
@@ -336,6 +337,108 @@ export default function SettingsPage() {
                 onChangeKey={(v) => update("integrations.instagram.apiKey", v)}
                 onStatusChange={(v) => update("integrations.instagram.status", v)}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ─── Email ─── */}
+        <TabsContent value="email" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base"><Mail className="h-4 w-4 text-primary" /> Email Provider</CardTitle>
+              <p className="text-xs text-muted-foreground">Configure SMTP for sending outreach and notification emails via Nodemailer.</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Field label="Email provider">
+                <Select value={settings.email.provider} onValueChange={(v) => update("email.provider", v)}>
+                  <SelectTrigger><SelectValue placeholder="Select a provider" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (disabled)</SelectItem>
+                    <SelectItem value="nodemailer">Nodemailer (SMTP)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              {settings.email.provider === "none" && (
+                <p className="text-xs text-muted-foreground">Select Nodemailer to configure SMTP and enable email sending.</p>
+              )}
+
+              {settings.email.provider === "nodemailer" && (
+                <div className="space-y-4">
+                  <Separator />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="SMTP host">
+                      <Input
+                        placeholder="smtp.gmail.com"
+                        value={settings.email.smtp.host}
+                        onChange={(e) => update("email.smtp.host", e.target.value)}
+                      />
+                    </Field>
+                    <Field label="SMTP port">
+                      <Input
+                        type="number"
+                        placeholder="587"
+                        value={settings.email.smtp.port}
+                        onChange={(e) => update("email.smtp.port", parseInt(e.target.value) || 587)}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+                    Default: Gmail SMTP on port 587 with TLS. Use an App Password (not your regular password) if 2FA is enabled.
+                  </div>
+                  <Field label="Secure" description="Use true for port 465, false for 587 and others.">
+                    <Switch
+                      checked={settings.email.smtp.secure}
+                      onCheckedChange={(v) => update("email.smtp.secure", v)}
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="SMTP username">
+                      <Input
+                        placeholder="you@example.com"
+                        value={settings.email.smtp.user}
+                        onChange={(e) => update("email.smtp.user", e.target.value)}
+                      />
+                    </Field>
+                    <Field label="SMTP password / app password">
+                      <Input
+                        type={showKeys.emailPass ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={settings.email.smtp.pass}
+                        onChange={(e) => update("email.smtp.pass", e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setShowKeys((s) => ({ ...s, emailPass: !s.emailPass }))}
+                  >
+                    {showKeys.emailPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showKeys.emailPass ? "Hide" : "Show"} password
+                  </Button>
+                  <Separator />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="From name">
+                      <Input
+                        placeholder="GrowthCo"
+                        value={settings.email.smtp.fromName}
+                        onChange={(e) => update("email.smtp.fromName", e.target.value)}
+                      />
+                    </Field>
+                    <Field label="From email">
+                      <Input
+                        placeholder="noreply@growthco.co"
+                        value={settings.email.smtp.fromEmail}
+                        onChange={(e) => update("email.smtp.fromEmail", e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

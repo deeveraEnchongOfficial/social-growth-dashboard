@@ -18,7 +18,7 @@ export function SidebarNav() {
           {BRAND_NAME[0]}
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold text-foreground">{BRAND_NAME}</div>
+          <div className="text-sm font-semibold text-sidebar-foreground">{BRAND_NAME}</div>
           <div className="text-xs text-sidebar-foreground/70">{PRODUCT_NAME}</div>
         </div>
       </div>

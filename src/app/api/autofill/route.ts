@@ -59,7 +59,8 @@ Return JSON with these exact fields:
         system: `You are a brand knowledge manager for ${settings.workspace.name}. Return ONLY valid JSON, no markdown.`,
         user: `Suggest values for a knowledge entry form. ${hint ? `Context: ${hint}` : "Suggest an important brand knowledge entry."}
 Return JSON with these exact fields:
-{"title": string, "category": string, "priority": "Low"|"Medium"|"High"|"Critical", "description": string, "relatedProduct": string, "approvedMessaging": string, "phrasesToAvoid": string, "audience": string}`,
+{"title": string, "category": string, "priority": "Low"|"Medium"|"High"|"Critical", "description": string, "content": string}
+The "content" field should be a markdown document with headers, bullet points, and bold text that teaches the AI about this topic.`,
       },
     };
 
@@ -162,10 +163,8 @@ function mockFill(formType: string): Record<string, string> {
       category: "Campaign priority",
       priority: "High",
       description: "Lead Q2 messaging around the product launch. Focus on data-driven growth and practical onboarding tips.",
-      relatedProduct: "GrowthCo Pro",
-      approvedMessaging: "Built for growing teams. Designed for modern marketers.",
-      phrasesToAvoid: "No unsubstantiated claims. No guaranteed results.",
-      audience: "SaaS founders",
+      content: "# Q2 Product Launch Campaign\n\n## Overview\nThe Q2 launch focuses on positioning GrowthCo Pro as the go-to growth platform for SaaS founders.\n\n## Key Messages\n- **Data-driven growth** — every decision backed by metrics\n- **Founder-led authority** — built by operators, for operators\n- **Practical onboarding** — 30-second audits, not 30-page reports\n\n## Target Audience\nEarly-stage SaaS founders (Seed to Series A) struggling with funnel optimization.\n\n## CTA Guidelines\n- Use \"Save this for your next review\"\n- Avoid \"Buy now\" or aggressive sales language",
+      filename: "",
     },
   };
 

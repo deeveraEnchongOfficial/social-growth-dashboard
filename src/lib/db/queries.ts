@@ -102,7 +102,7 @@ export async function getKnowledgeEntries(): Promise<KnowledgeEntry[]> {
     const docs = await KnowledgeEntryModel.find().lean().limit(50);
     return docs as unknown as KnowledgeEntry[];
   }
-  return mock.knowledgeEntries;
+  return [];
 }
 
 export async function getIntegrations(): Promise<Integration[]> {

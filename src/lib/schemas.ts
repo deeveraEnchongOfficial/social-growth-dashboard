@@ -59,12 +59,8 @@ export const knowledgeEntrySchema = z.object({
   category: z.string().min(1, "Select a category"),
   priority: z.string().min(1, "Select a priority"),
   description: z.string().min(1, "Description is required"),
-  relatedProduct: z.string().optional(),
-  approvedMessaging: z.string().optional(),
-  phrasesToAvoid: z.string().optional(),
-  audience: z.string().optional(),
-  startDate: z.string().optional(),
-  expiration: z.string().optional(),
+  content: z.string().min(10, "Markdown content must be at least 10 characters"),
+  filename: z.string().optional(),
 });
 
 export type KnowledgeEntryValues = z.infer<typeof knowledgeEntrySchema>;

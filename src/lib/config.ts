@@ -37,12 +37,26 @@ export interface WorkspaceConfig {
   productName: string;
 }
 
+export interface EmailConfig {
+  provider: string;
+  smtp: {
+    host: string;
+    port: number;
+    secure: boolean;
+    user: string;
+    pass: string;
+    fromName: string;
+    fromEmail: string;
+  };
+}
+
 export interface AppSettings {
   brandVoice: BrandVoiceConfig;
   guardrails: Record<string, boolean>;
   notifications: Record<string, boolean>;
   aiProviders: AiProviderConfig;
   integrations: IntegrationConfig;
+  email: EmailConfig;
   workspace: WorkspaceConfig;
 }
 
@@ -90,6 +104,18 @@ export const defaultSettings: AppSettings = {
     gmail: { apiKey: "", status: "Disconnected" },
     tiktok: { apiKey: "", status: "Disconnected" },
     instagram: { apiKey: "", status: "Disconnected" },
+  },
+  email: {
+    provider: "none",
+    smtp: {
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      user: "",
+      pass: "",
+      fromName: "GrowthCo",
+      fromEmail: "",
+    },
   },
   workspace: {
     name: "GrowthCo",
